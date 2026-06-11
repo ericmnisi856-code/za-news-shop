@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { NewsArticle } from "@/lib/cnza/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-export function HeroCarousel({ articles }: { articles: NewsArticle[] }) {
+export function HeroCarousel({ articles, onOpen }: { articles: NewsArticle[]; onOpen: (a: NewsArticle) => void }) {
   const top = articles.slice(0, 5);
   const [i, setI] = useState(0);
   useEffect(() => {
