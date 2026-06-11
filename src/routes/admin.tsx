@@ -28,7 +28,7 @@ function AdminGate() {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!isAdminAuthed()) {
-      nav({ to: "/admin/login" });
+      nav({ to: "/admin-login" });
     } else {
       setReady(true);
     }
@@ -43,7 +43,7 @@ function AdminPage() {
   const logout = () => {
     signOutAdmin();
     toast.success("Signed out");
-    nav({ to: "/admin/login" });
+    nav({ to: "/admin-login" });
   };
   return (
     <div className="min-h-screen bg-background">
