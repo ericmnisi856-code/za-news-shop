@@ -55,14 +55,16 @@ async function parseFeed(url: string, source: string, category: Category): Promi
     return items.slice(0, 12).map((block, i) => {
       const title = stripHtml(pick("title", block) ?? "Untitled");
       const link = stripHtml(pick("link", block) ?? "#");
-      const rawDesc = pick("description", block) ?? "";
+      const rawDesc = pick("description", block) ?? pick("content:encoded", block) ?? "";
       const excerpt = stripHtml(rawDesc).slice(0, 220);
       const pubDate = stripHtml(pick("pubDate", block) ?? new Date().toISOString());
+      const id = `${source}-${i}-${link.slice(-40)}`;
+      const image = extractImage(block) ?? `https://picsum.photos/seed/${encodeURIComponent(id)}/800/500`;
       return {
-        id: `${source}-${i}-${link.slice(-40)}`,
+        id,
         title,
         excerpt,
-        image: extractImage(block),
+        image,
         source,
         link,
         category,
@@ -117,5 +119,11 @@ export const fetchNews = createServerFn({ method: "GET" })
       }
     }
     articles.sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
+    // When no specific category requested, surface SA Politics first in the headline feed
+    if (!data.category) {
+      const politics = articles.filter((a) => a.category === "Politics");
+      const rest = articles.filter((a) => a.category !== "Politics");
+      articles = [...politics.slice(0, 8), ...rest, ...politics.slice(8)];
+    }
     return articles;
   });
