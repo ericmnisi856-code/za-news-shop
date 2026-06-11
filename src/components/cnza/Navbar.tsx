@@ -16,11 +16,12 @@ export function Navbar({ activeCategory = "Headline", onCategoryChange, onCartOp
   const cartCount = cart.reduce((a, c) => a + c.quantity, 0);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const onHome = pathname === "/";
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
   useEffect(() => {
-    const saved = localStorage.getItem("cnza_dark") === "1";
-    setDark(saved);
-    document.documentElement.classList.toggle("dark", saved);
+    const stored = localStorage.getItem("cnza_dark");
+    const isDark = stored === null ? true : stored === "1";
+    setDark(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
   }, []);
   const toggleDark = () => {
     const nx = !dark;
