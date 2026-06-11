@@ -2,7 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { NewsArticle } from "@/lib/cnza/types";
 import { ExternalLink, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ArticlePlaceholder } from "./ArticlePlaceholder";
+import { FALLBACK_IMAGE } from "@/lib/cnza/fallbackImage";
 
 interface Props {
   article: NewsArticle | null;
@@ -83,16 +83,13 @@ export function ArticleReader({ article, onClose }: Props) {
                   </div>
                 </div>
               )}
-              {showHeroImg ? (
-                <img
-                  src={heroImage}
-                  alt={article.title}
-                  className="h-full w-full object-cover"
-                  onError={() => setImgFailed(true)}
-                />
-              ) : (
-                <ArticlePlaceholder title={article.title} category={article.category} large />
-              )}
+              <img
+                src={showHeroImg ? heroImage : FALLBACK_IMAGE}
+                alt={article.title}
+                className="h-full w-full object-cover"
+                onError={() => setImgFailed(true)}
+              />
+              
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
               <button
                 onClick={onClose}

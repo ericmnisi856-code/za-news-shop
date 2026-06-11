@@ -1,9 +1,7 @@
 export type Category = "Politics" | "Sports" | "Technology" | "Business" | "Leisure";
 
-// Active news categories shown across the app. Business & Leisure are excluded
-// from headlines and post feeds per editorial direction (kept in the Category
-// type so existing store/product data remains valid).
-export const CATEGORIES: Category[] = ["Politics", "Sports", "Technology"];
+// Active news categories shown across the app.
+export const CATEGORIES: Category[] = ["Politics", "Sports", "Technology", "Business", "Leisure"];
 
 export interface NewsArticle {
   id: string;

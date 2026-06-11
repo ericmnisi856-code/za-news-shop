@@ -3,7 +3,7 @@ import { z } from "zod";
 import { FEEDS } from "./feeds";
 import type { Category, NewsArticle } from "./types";
 
-const CATS = ["Politics", "Sports", "Technology"] as const;
+const CATS = ["Politics", "Sports", "Technology", "Business", "Leisure"] as const;
 
 function decode(s: string) {
   return s
