@@ -28,13 +28,12 @@ export function HeroCarousel({ articles, onOpen }: { articles: NewsArticle[]; on
           <h2 className="font-serif text-2xl font-bold leading-tight md:text-4xl">{a.title}</h2>
           <p className="text-sm text-muted-foreground md:text-base line-clamp-3">{a.excerpt}</p>
           <div className="flex items-center gap-3">
-            {a.link && a.link !== "#" ? (
-              <a href={a.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90">
-                Read full story
-              </a>
-            ) : (
-              <span className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">CNZA Exclusive</span>
-            )}
+            <button
+              onClick={() => onOpen(a)}
+              className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              Read full story
+            </button>
             <span className="text-xs text-muted-foreground">By {a.author}</span>
           </div>
           <div className="mt-2 flex items-center gap-2">
