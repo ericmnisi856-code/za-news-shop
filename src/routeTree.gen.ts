@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiArticleRouteImport } from './routes/api/article'
 
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin-login',
@@ -28,35 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiArticleRoute = ApiArticleRouteImport.update({
+  id: '/api/article',
+  path: '/api/article',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
+  '/api/article': typeof ApiArticleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
+  '/api/article': typeof ApiArticleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
+  '/api/article': typeof ApiArticleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/admin-login'
+  fullPaths: '/' | '/admin' | '/admin-login' | '/api/article'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/admin-login'
-  id: '__root__' | '/' | '/admin' | '/admin-login'
+  to: '/' | '/admin' | '/admin-login' | '/api/article'
+  id: '__root__' | '/' | '/admin' | '/admin-login' | '/api/article'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  ApiArticleRoute: typeof ApiArticleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/article': {
+      id: '/api/article'
+      path: '/api/article'
+      fullPath: '/api/article'
+      preLoaderRoute: typeof ApiArticleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AdminLoginRoute: AdminLoginRoute,
+  ApiArticleRoute: ApiArticleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
