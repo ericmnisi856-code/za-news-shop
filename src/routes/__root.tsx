@@ -82,6 +82,28 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    let lastPath = "";
+    const track = () => {
+      const p = window.location.pathname;
+      if (p === lastPath) return;
+      lastPath = p;
+      import("@/lib/cnza/analytics").then((m) => m.trackPageView(p));
+    };
+    track();
+    const onNav = () => track();
+    window.addEventListener("popstate", onNav);
+    // Patch pushState/replaceState to detect SPA navigations
+    const origPush = history.pushState;
+    const origReplace = history.replaceState;
+    history.pushState = function (...args) { const r = origPush.apply(this, args); onNav(); return r; };
+    history.replaceState = function (...args) { const r = origReplace.apply(this, args); onNav(); return r; };
+    return () => {
+      window.removeEventListener("popstate", onNav);
+      history.pushState = origPush;
+      history.replaceState = origReplace;
+    };
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
