@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Navbar } from "@/components/cnza/Navbar";
-import { NewsCard } from "@/components/cnza/NewsCard";
 import { HeroCarousel } from "@/components/cnza/HeroCarousel";
 import { ShopStrip } from "@/components/cnza/ShopStrip";
 import { CartSheet } from "@/components/cnza/CartSheet";
+import { ArticleReader } from "@/components/cnza/ArticleReader";
+import { InfiniteNewsGrid } from "@/components/cnza/InfiniteNewsGrid";
 import { StoreProvider, useStore } from "@/lib/cnza/store";
 import { fetchNews } from "@/lib/cnza/rss.functions";
-import { CATEGORIES, type Category } from "@/lib/cnza/types";
+import { CATEGORIES, type Category, type NewsArticle } from "@/lib/cnza/types";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -30,7 +31,18 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [active, setActive] = useState<string>("Headline");
   const [cartOpen, setCartOpen] = useState(false);
+  const [reading, setReading] = useState<NewsArticle | null>(null);
   const { customArticles } = useStore();
+
+  // Always start from the top on initial mount
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, []);
+
+  // Scroll to top when switching categories
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [active]);
 
   const cat = active === "Headline" ? undefined : (active as Category);
 
@@ -58,7 +70,7 @@ function Home() {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              <HeroCarousel articles={articles} />
+              <HeroCarousel articles={articles} onOpen={setReading} />
             )}
           </>
         )}
@@ -78,9 +90,7 @@ function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((a) => <NewsCard key={a.id} article={a} />)}
-            </div>
+            <InfiniteNewsGrid articles={articles} onOpen={setReading} />
           )}
         </section>
 
@@ -114,6 +124,7 @@ function Home() {
       </footer>
 
       <CartSheet open={cartOpen} onOpenChange={setCartOpen} />
+      <ArticleReader article={reading} onClose={() => setReading(null)} />
     </div>
   );
 }
