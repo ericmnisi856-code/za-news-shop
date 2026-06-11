@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/cnza/Navbar";
 import { CartSheet } from "@/components/cnza/CartSheet";
 import { StoreProvider, useStore, formatR } from "@/lib/cnza/store";
@@ -9,28 +9,52 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pencil, Trash2, Plus, Lock } from "lucide-react";
+import { Pencil, Trash2, Plus, Lock, LogOut, Upload, X } from "lucide-react";
 import { CATEGORIES, type Category, type Product } from "@/lib/cnza/types";
 import { toast } from "sonner";
+import { isAdminAuthed, signOutAdmin } from "@/lib/cnza/auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · CNZA" }] }),
   component: () => (
     <StoreProvider>
-      <AdminPage />
+      <AdminGate />
     </StoreProvider>
   ),
 });
 
+function AdminGate() {
+  const nav = useNavigate();
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (!isAdminAuthed()) {
+      nav({ to: "/admin-login" });
+    } else {
+      setReady(true);
+    }
+  }, [nav]);
+  if (!ready) return null;
+  return <AdminPage />;
+}
+
 function AdminPage() {
   const [cartOpen, setCartOpen] = useState(false);
+  const nav = useNavigate();
+  const logout = () => {
+    signOutAdmin();
+    toast.success("Signed out");
+    nav({ to: "/admin-login" });
+  };
   return (
     <div className="min-h-screen bg-background">
       <Navbar onCartOpen={() => setCartOpen(true)} />
       <main className="mx-auto max-w-7xl px-4 py-8 lg:px-6">
-        <div className="mb-6">
-          <h1 className="font-serif text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-sm text-muted-foreground">Manage e-book inventory and publish breaking news. Changes propagate live.</p>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-serif text-3xl font-bold">Admin Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Manage e-book inventory and publish breaking news. Changes propagate live.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={logout} className="gap-2"><LogOut className="h-4 w-4" /> Sign out</Button>
         </div>
 
         <Tabs defaultValue="products">
@@ -43,6 +67,48 @@ function AdminPage() {
         </Tabs>
       </main>
       <CartSheet open={cartOpen} onOpenChange={setCartOpen} />
+    </div>
+  );
+}
+
+function ImageUpload({ value, onChange, label = "Image" }: { value?: string; onChange: (v: string) => void; label?: string }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const onFile = (file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please choose an image file"); return; }
+    if (file.size > 4 * 1024 * 1024) { toast.error("Image must be under 4MB"); return; }
+    const reader = new FileReader();
+    reader.onload = () => onChange(String(reader.result));
+    reader.readAsDataURL(file);
+  };
+  return (
+    <div>
+      <Label>{label}</Label>
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.currentTarget.value = ""; }}
+      />
+      {value ? (
+        <div className="relative mt-1 overflow-hidden rounded-md border border-border">
+          <img src={value} alt="" className="h-40 w-full object-cover" />
+          <div className="absolute right-2 top-2 flex gap-1">
+            <Button type="button" size="icon" variant="secondary" className="h-8 w-8" onClick={() => ref.current?.click()}><Upload className="h-3.5 w-3.5" /></Button>
+            <Button type="button" size="icon" variant="destructive" className="h-8 w-8" onClick={() => onChange("")}><X className="h-3.5 w-3.5" /></Button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          className="mt-1 flex h-32 w-full flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-border bg-muted/30 text-sm text-muted-foreground transition hover:border-accent hover:text-accent"
+        >
+          <Upload className="h-5 w-5" />
+          Click to upload an image
+          <span className="text-xs text-muted-foreground">PNG, JPG up to 4MB</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -113,7 +179,7 @@ function ProductsPanel() {
                 <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div><Label>Cover image URL</Label><Input value={form.cover} onChange={(e) => setForm({ ...form, cover: e.target.value })} placeholder="https://…" /></div>
+            <ImageUpload label="Cover image" value={form.cover} onChange={(v) => setForm({ ...form, cover: v })} />
             <div><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
             <div className="flex gap-2 pt-2">
               <Button className="flex-1" onClick={save}>Save</Button>
@@ -173,7 +239,7 @@ function NewsPanel() {
               <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </div>
-          <div><Label>Image URL</Label><Input value={image} onChange={(e) => setImage(e.target.value)} placeholder="https://…" /></div>
+          <ImageUpload label="Article image" value={image} onChange={setImage} />
           <div><Label>Content</Label><Textarea value={content} onChange={(e) => setContent(e.target.value)} rows={6} /></div>
           <div>
             <Label>Author</Label>

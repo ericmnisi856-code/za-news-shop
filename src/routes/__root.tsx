@@ -68,9 +68,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const darkInit = `(function(){try{var s=localStorage.getItem('cnza_dark');if(s===null||s==='1'){document.documentElement.classList.add('dark');}}catch(e){document.documentElement.classList.add('dark');}})();`;
   return (
-    <html lang="en">
-      <head><HeadContent /></head>
+    <html lang="en" className="dark">
+      <head>
+        <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: darkInit }} />
+      </head>
       <body>{children}<Scripts /></body>
     </html>
   );
