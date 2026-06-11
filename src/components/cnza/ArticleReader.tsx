@@ -1,8 +1,18 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { NewsArticle } from "@/lib/cnza/types";
-import { ExternalLink, Loader2, X } from "lucide-react";
+import { Loader2, X, Facebook, Twitter, Linkedin, Link2, MessageCircle, Mail, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FALLBACK_IMAGE } from "@/lib/cnza/fallbackImage";
+
+const SITE_URL = "https://citynewsza.co.za";
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 interface Props {
   article: NewsArticle | null;
@@ -126,20 +136,67 @@ export function ArticleReader({ article, onClose }: Props) {
                 )}
               </div>
 
-              {article.link && article.link !== "#" && (
-                <a
-                  href={article.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-md border border-border bg-secondary px-4 py-2 text-sm font-semibold hover:bg-muted"
-                >
-                  View original source <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              )}
+              <ShareBar title={article.title} slug={slugify(article.title)} id={article.id} />
             </div>
           </article>
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ShareBar({ title, slug, id }: { title: string; slug: string; id: string }) {
+  const url = `${SITE_URL}/article/${slug}-${id}`;
+  const encodedUrl = encodeURIComponent(url);
+  const encodedTitle = encodeURIComponent(title);
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {}
+  };
+
+  const nativeShare = async () => {
+    if (typeof navigator !== "undefined" && (navigator as any).share) {
+      try {
+        await (navigator as any).share({ title, url });
+      } catch {}
+    }
+  };
+
+  const btn = "inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-secondary text-foreground transition-colors hover:bg-muted";
+
+  return (
+    <div className="border-t border-border pt-4">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Share this article</div>
+      <div className="flex flex-wrap items-center gap-2">
+        <a className={btn} aria-label="Share on Facebook" href={`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`} target="_blank" rel="noopener noreferrer">
+          <Facebook className="h-4 w-4" />
+        </a>
+        <a className={btn} aria-label="Share on X/Twitter" href={`https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`} target="_blank" rel="noopener noreferrer">
+          <Twitter className="h-4 w-4" />
+        </a>
+        <a className={btn} aria-label="Share on LinkedIn" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`} target="_blank" rel="noopener noreferrer">
+          <Linkedin className="h-4 w-4" />
+        </a>
+        <a className={btn} aria-label="Share on WhatsApp" href={`https://api.whatsapp.com/send?text=${encodedTitle}%20${encodedUrl}`} target="_blank" rel="noopener noreferrer">
+          <MessageCircle className="h-4 w-4" />
+        </a>
+        <a className={btn} aria-label="Share via Email" href={`mailto:?subject=${encodedTitle}&body=${encodedUrl}`}>
+          <Mail className="h-4 w-4" />
+        </a>
+        <button type="button" onClick={copy} className={btn} aria-label="Copy link">
+          {copied ? <Check className="h-4 w-4 text-accent" /> : <Link2 className="h-4 w-4" />}
+        </button>
+        {typeof navigator !== "undefined" && (navigator as any).share && (
+          <button type="button" onClick={nativeShare} className="ml-1 inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-3 py-2 text-xs font-semibold hover:bg-muted">
+            Share…
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
