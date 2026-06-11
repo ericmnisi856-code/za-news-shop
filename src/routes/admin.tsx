@@ -13,6 +13,7 @@ import { Pencil, Trash2, Plus, Lock, LogOut, Upload, X } from "lucide-react";
 import { CATEGORIES, type Category, type Product } from "@/lib/cnza/types";
 import { toast } from "sonner";
 import { isAdminAuthed, signOutAdmin } from "@/lib/cnza/auth";
+import { AdminStats } from "@/components/cnza/AdminStats";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · CNZA" }] }),
@@ -57,11 +58,13 @@ function AdminPage() {
           <Button variant="outline" size="sm" onClick={logout} className="gap-2"><LogOut className="h-4 w-4" /> Sign out</Button>
         </div>
 
-        <Tabs defaultValue="products">
+        <Tabs defaultValue="stats">
           <TabsList>
+            <TabsTrigger value="stats">Stats</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
           </TabsList>
+          <TabsContent value="stats" className="mt-6"><AdminStats /></TabsContent>
           <TabsContent value="products" className="mt-6"><ProductsPanel /></TabsContent>
           <TabsContent value="news" className="mt-6"><NewsPanel /></TabsContent>
         </Tabs>
