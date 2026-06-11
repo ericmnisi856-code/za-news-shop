@@ -63,8 +63,12 @@ export function ArticleReader({ article, onClose }: Props) {
     };
   }, [article, needsImage]);
 
+  useEffect(() => {
+    setImgFailed(false);
+  }, [article?.id, fetched?.image]);
+
   const body = (fetched?.content && fetched.content.length > 200 ? fetched.content : null) ?? article?.content ?? article?.excerpt ?? "";
-  const fallback = article ? `https://picsum.photos/seed/${encodeURIComponent(article.id)}/1400/800` : "";
+  const showHeroImg = !!heroImage && !imgFailed;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
@@ -75,19 +79,20 @@ export function ArticleReader({ article, onClose }: Props) {
               {loading && needsImage && !fetched?.image && (
                 <div className="absolute inset-0 flex items-center justify-center bg-muted/60 backdrop-blur-sm z-10">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Generating cover image…
+                    <Loader2 className="h-4 w-4 animate-spin" /> Generating relevant cover image…
                   </div>
                 </div>
               )}
-              <img
-                src={heroImage}
-                alt={article.title}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  const img = e.currentTarget as HTMLImageElement;
-                  if (img.src !== fallback) img.src = fallback;
-                }}
-              />
+              {showHeroImg ? (
+                <img
+                  src={heroImage}
+                  alt={article.title}
+                  className="h-full w-full object-cover"
+                  onError={() => setImgFailed(true)}
+                />
+              ) : (
+                <ArticlePlaceholder title={article.title} category={article.category} large />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
               <button
                 onClick={onClose}
