@@ -53,6 +53,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "City News ZA (CNZA)" },
       { name: "description", content: "South African news aggregator and digital e-book store." },
+      { property: "og:title", content: "City News ZA (CNZA)" },
+      { name: "twitter:title", content: "City News ZA (CNZA)" },
+      { property: "og:description", content: "South African news aggregator and digital e-book store." },
+      { name: "twitter:description", content: "South African news aggregator and digital e-book store." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/c790a246-81f9-41ff-a450-337ee93e6e76" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/c790a246-81f9-41ff-a450-337ee93e6e76" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -82,28 +90,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  useEffect(() => {
-    let lastPath = "";
-    const track = () => {
-      const p = window.location.pathname;
-      if (p === lastPath) return;
-      lastPath = p;
-      import("@/lib/cnza/analytics").then((m) => m.trackPageView(p));
-    };
-    track();
-    const onNav = () => track();
-    window.addEventListener("popstate", onNav);
-    // Patch pushState/replaceState to detect SPA navigations
-    const origPush = history.pushState;
-    const origReplace = history.replaceState;
-    history.pushState = function (...args) { const r = origPush.apply(this, args); onNav(); return r; };
-    history.replaceState = function (...args) { const r = origReplace.apply(this, args); onNav(); return r; };
-    return () => {
-      window.removeEventListener("popstate", onNav);
-      history.pushState = origPush;
-      history.replaceState = origReplace;
-    };
-  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
