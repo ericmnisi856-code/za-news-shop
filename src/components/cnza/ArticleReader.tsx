@@ -1,8 +1,18 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { NewsArticle } from "@/lib/cnza/types";
-import { ExternalLink, Loader2, X } from "lucide-react";
+import { Loader2, X, Facebook, Twitter, Linkedin, Link2, MessageCircle, Mail, Check } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FALLBACK_IMAGE } from "@/lib/cnza/fallbackImage";
+
+const SITE_URL = "https://citynewsza.co.za";
+
+function slugify(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
 
 interface Props {
   article: NewsArticle | null;
