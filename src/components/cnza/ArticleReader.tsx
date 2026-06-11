@@ -2,6 +2,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { NewsArticle } from "@/lib/cnza/types";
 import { ExternalLink, Loader2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ArticlePlaceholder } from "./ArticlePlaceholder";
 
 interface Props {
   article: NewsArticle | null;
