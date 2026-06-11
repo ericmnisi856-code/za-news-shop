@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ShoppingCart, LayoutDashboard, User, Newspaper, Moon, Sun } from "lucide-react";
+import { ShoppingCart, LayoutDashboard, User, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/lib/cnza/store";
 import { CATEGORIES } from "@/lib/cnza/types";
@@ -35,13 +35,13 @@ export function Navbar({ activeCategory = "Headline", onCategoryChange, onCartOp
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 lg:px-6">
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Newspaper className="h-5 w-5" />
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-gradient-to-br from-primary to-accent font-serif text-[13px] font-extrabold tracking-tight text-primary-foreground shadow-md shadow-accent/20">
+            CNZA
           </div>
           <div className="leading-tight">
-            <div className="font-serif text-lg font-bold tracking-tight">City News ZA</div>
-            <div className="-mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">CNZA</div>
+            <div className="font-serif text-lg font-bold tracking-tight">CNZA</div>
+            <div className="-mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">City News ZA</div>
           </div>
         </Link>
 
