@@ -3,7 +3,7 @@ import { z } from "zod";
 import { FEEDS } from "./feeds";
 import type { Category, NewsArticle } from "./types";
 
-const CATS = ["Politics", "Sports", "Technology", "Business", "Leisure"] as const;
+const CATS = ["Politics", "Sports", "Technology"] as const;
 
 function decode(s: string) {
   return s
@@ -59,7 +59,7 @@ async function parseFeed(url: string, source: string, category: Category): Promi
       const excerpt = stripHtml(rawDesc).slice(0, 220);
       const pubDate = stripHtml(pick("pubDate", block) ?? new Date().toISOString());
       const id = `${source}-${i}-${link.slice(-40)}`;
-      const image = extractImage(block) ?? `https://picsum.photos/seed/${encodeURIComponent(id)}/800/500`;
+      const image = extractImage(block); // undefined when the feed has no real image
       return {
         id,
         title,
@@ -79,18 +79,16 @@ async function parseFeed(url: string, source: string, category: Category): Promi
 }
 
 function fallbackArticles(category: Category): NewsArticle[] {
-  const topics: Record<Category, string[]> = {
+  const topics: Partial<Record<Category, string[]>> = {
     Politics: ["Coalition talks intensify ahead of provincial vote", "Parliament debates new energy bill", "Local government reforms unveiled"],
     Sports: ["Springboks confirm squad for end-of-year tour", "Proteas chase historic series win", "PSL title race tightens after weekend draws"],
     Technology: ["South African startup raises Series A for fintech", "Load-shedding spurs solar tech adoption", "AI research hub opens in Cape Town"],
-    Business: ["Rand strengthens against the dollar on global cues", "JSE all-share index hits new high", "SARB holds repo rate steady"],
-    Leisure: ["Top weekend restaurant openings in Joburg", "A guide to the Western Cape wine harvest", "Five hidden hiking trails near Durban"],
   };
-  return topics[category].map((title, i) => ({
+  return (topics[category] ?? []).map((title, i) => ({
     id: `fallback-${category}-${i}`,
     title,
     excerpt: `${title}. A CityNewsZA editorial brief covering the latest developments, context and what to watch next…`,
-    image: `https://picsum.photos/seed/${encodeURIComponent(category + i)}/800/500`,
+    image: undefined,
     source: "CityNewsZA",
     link: "#",
     category,

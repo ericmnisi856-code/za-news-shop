@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NewsArticle } from "@/lib/cnza/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ArticlePlaceholder } from "./ArticlePlaceholder";
 
 export function HeroCarousel({ articles, onOpen }: { articles: NewsArticle[]; onOpen: (a: NewsArticle) => void }) {
-  const top = articles.slice(0, 5);
+  // Prefer top stories that actually carry a publisher image; if none, fall back to first 5.
+  const top = useMemo(() => {
+    const withImg = articles.filter((a) => !!a.image).slice(0, 5);
+    return withImg.length >= 3 ? withImg : articles.slice(0, 5);
+  }, [articles]);
   const [i, setI] = useState(0);
+  const [failed, setFailed] = useState<Record<string, boolean>>({});
   useEffect(() => {
     if (top.length <= 1) return;
     const t = setInterval(() => setI((x) => (x + 1) % top.length), 6000);
@@ -12,12 +18,22 @@ export function HeroCarousel({ articles, onOpen }: { articles: NewsArticle[]; on
   }, [top.length]);
   if (top.length === 0) return null;
   const a = top[i];
-  const fallback = `https://picsum.photos/seed/${encodeURIComponent(a.id)}/1200/750`;
+  const showImage = !!a.image && !failed[a.id];
   return (
     <section className="relative overflow-hidden rounded-xl border border-border bg-card">
       <div className="grid md:grid-cols-2">
         <div className="relative aspect-[16/10] md:aspect-auto md:h-full bg-muted">
-          <img key={a.id} src={a.image || fallback} alt={a.title} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== fallback) img.src = fallback; }} className="h-full w-full object-cover animate-in fade-in duration-700" />
+          {showImage ? (
+            <img
+              key={a.id}
+              src={a.image}
+              alt={a.title}
+              onError={() => setFailed((m) => ({ ...m, [a.id]: true }))}
+              className="h-full w-full object-cover animate-in fade-in duration-700"
+            />
+          ) : (
+            <ArticlePlaceholder title={a.title} category={a.category} large />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-r" />
         </div>
         <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
