@@ -7,19 +7,18 @@ const sourceColors: Record<string, string> = {
 
 export function NewsCard({ article }: { article: NewsArticle }) {
   const badgeCls = sourceColors[article.source] ?? "bg-primary text-primary-foreground";
+  const fallback = `https://picsum.photos/seed/${encodeURIComponent(article.id)}/800/500`;
   return (
     <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-all hover:-translate-y-0.5 hover:shadow-lg">
-      {article.image && (
-        <div className="aspect-[16/10] overflow-hidden bg-muted">
-          <img
-            src={article.image}
-            alt={article.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-          />
-        </div>
-      )}
+      <div className="aspect-[16/10] overflow-hidden bg-muted">
+        <img
+          src={article.image || fallback}
+          alt={article.title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== fallback) img.src = fallback; }}
+        />
+      </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center gap-2 text-xs">
           <span className={`rounded-sm px-1.5 py-0.5 font-bold uppercase tracking-wider ${badgeCls}`}>{article.source}</span>
