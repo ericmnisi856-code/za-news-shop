@@ -59,7 +59,7 @@ async function parseFeed(url: string, source: string, category: Category): Promi
       const excerpt = stripHtml(rawDesc).slice(0, 220);
       const pubDate = stripHtml(pick("pubDate", block) ?? new Date().toISOString());
       const id = `${source}-${i}-${link.slice(-40)}`;
-      const image = extractImage(block) ?? `https://picsum.photos/seed/${encodeURIComponent(id)}/800/500`;
+      const image = extractImage(block); // undefined when the feed has no real image
       return {
         id,
         title,
