@@ -1,0 +1,25 @@
+# Netlify deployment configuration for this TanStack Start app.
+#
+# When NETLIFY=1 is set during the build (Netlify CI sets this automatically),
+# vite.config.ts switches the nitro deploy preset to "netlify", which produces
+# a Netlify Functions bundle in `.netlify/` plus static assets in `dist/client`.
+#
+# Nitro's netlify preset writes its own netlify.toml entries into the build
+# output, but we keep this file so the Netlify UI/CLI picks up build settings
+# and Node version without any manual dashboard configuration.
+
+[build]
+  command = "npm run build"
+  publish = "dist/client"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NETLIFY = "1"
+
+# SPA-style fallback for any path nitro's function handler doesn't serve
+# directly. The netlify preset installs its own catch-all function route, but
+# this guarantees client-side routing also works for static-only fallbacks.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
