@@ -19,11 +19,9 @@ export function ArticleReader({ article, onClose }: Props) {
   const [fetched, setFetched] = useState<FetchedData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const needsImage = !article?.image || /picsum\.photos/.test(article.image);
-  const heroImage =
-    fetched?.image ||
-    article?.image ||
-    (article ? `https://picsum.photos/seed/${encodeURIComponent(article.id)}/1400/800` : "");
+  const needsImage = !article?.image;
+  const heroImage = fetched?.image || article?.image || "";
+  const [imgFailed, setImgFailed] = useState(false);
 
   useEffect(() => {
     if (!article) {
