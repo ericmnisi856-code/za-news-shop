@@ -89,7 +89,7 @@ export function ArticleReader({ article, onClose }: Props) {
                 className="h-full w-full object-cover"
                 onError={() => setImgFailed(true)}
               />
-              {void showHeroImg}
+              
               <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
               <button
                 onClick={onClose}
