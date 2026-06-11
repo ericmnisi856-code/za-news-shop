@@ -1,7 +1,7 @@
 import type { NewsArticle } from "@/lib/cnza/types";
 import { ArrowUpRight } from "lucide-react";
-import { ArticlePlaceholder } from "./ArticlePlaceholder";
 import { useState } from "react";
+import { FALLBACK_IMAGE } from "@/lib/cnza/fallbackImage";
 
 const sourceColors: Record<string, string> = {
   CityNewsZA: "bg-accent text-accent-foreground",
@@ -15,24 +15,20 @@ interface Props {
 export function NewsCard({ article, onOpen }: Props) {
   const badgeCls = sourceColors[article.source] ?? "bg-primary text-primary-foreground";
   const [failed, setFailed] = useState(false);
-  const showImage = !!article.image && !failed;
+  const src = !article.image || failed ? FALLBACK_IMAGE : article.image;
   return (
     <article
       onClick={() => onOpen(article)}
       className="group flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card transition-all duration-500 hover:-translate-y-1 hover:border-accent/60 hover:shadow-2xl hover:shadow-accent/10"
     >
       <div className="aspect-[16/10] overflow-hidden bg-muted">
-        {showImage ? (
-          <img
-            src={article.image}
-            alt={article.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-            onError={() => setFailed(true)}
-          />
-        ) : (
-          <ArticlePlaceholder title={article.title} category={article.category} />
-        )}
+        <img
+          src={src}
+          alt={article.title}
+          loading="lazy"
+          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+          onError={() => setFailed(true)}
+        />
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="flex items-center gap-2 text-xs">
