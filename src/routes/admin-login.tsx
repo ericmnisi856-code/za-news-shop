@@ -7,7 +7,7 @@ import { signInAdmin } from "@/lib/cnza/auth";
 import { Newspaper, Lock } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/admin/login")({
+export const Route = createFileRoute("/admin-login")({
   head: () => ({ meta: [{ title: "Admin Login · CNZA" }] }),
   component: LoginPage,
 });
