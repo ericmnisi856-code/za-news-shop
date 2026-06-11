@@ -3,7 +3,7 @@ import type { NewsArticle } from "@/lib/cnza/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export function HeroCarousel({ articles }: { articles: NewsArticle[] }) {
-  const top = articles.filter((a) => a.image).slice(0, 5);
+  const top = articles.slice(0, 5);
   const [i, setI] = useState(0);
   useEffect(() => {
     if (top.length <= 1) return;
@@ -12,11 +12,12 @@ export function HeroCarousel({ articles }: { articles: NewsArticle[] }) {
   }, [top.length]);
   if (top.length === 0) return null;
   const a = top[i];
+  const fallback = `https://picsum.photos/seed/${encodeURIComponent(a.id)}/1200/750`;
   return (
     <section className="relative overflow-hidden rounded-xl border border-border bg-card">
       <div className="grid md:grid-cols-2">
         <div className="relative aspect-[16/10] md:aspect-auto md:h-full bg-muted">
-          <img key={a.id} src={a.image} alt={a.title} className="h-full w-full object-cover animate-in fade-in duration-700" />
+          <img key={a.id} src={a.image || fallback} alt={a.title} onError={(e) => { const img = e.currentTarget as HTMLImageElement; if (img.src !== fallback) img.src = fallback; }} className="h-full w-full object-cover animate-in fade-in duration-700" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-r" />
         </div>
         <div className="flex flex-col justify-center gap-4 p-6 md:p-10">
