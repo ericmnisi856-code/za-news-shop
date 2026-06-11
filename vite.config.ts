@@ -6,10 +6,25 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig({
-  tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
-    server: { entry: "server" },
-  },
-});
+// Detect Netlify build environment. When deploying on Netlify, switch the
+// nitro deploy target to the `netlify` preset (Netlify Functions) so the app
+// works on Netlify hosting instead of Cloudflare Workers.
+const isNetlify = !!process.env.NETLIFY;
+
+export default defineConfig(
+  isNetlify
+    ? {
+        // On Netlify: let nitro use its default TanStack server entry so the
+        // Cloudflare-specific Worker wrapper in src/server.ts is not used.
+        nitro: {
+          preset: "netlify",
+        },
+      }
+    : {
+        tanstackStart: {
+          // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+          // nitro/vite builds from this. Cloudflare-only.
+          server: { entry: "server" },
+        },
+      },
+);
