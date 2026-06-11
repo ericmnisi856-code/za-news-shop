@@ -14,7 +14,7 @@ import { CATEGORIES, type Category, type Product } from "@/lib/cnza/types";
 import { toast } from "sonner";
 import { isAdminAuthed, signOutAdmin } from "@/lib/cnza/auth";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/admin/")({
   head: () => ({ meta: [{ title: "Admin · CNZA" }] }),
   component: () => (
     <StoreProvider>
