@@ -79,18 +79,16 @@ async function parseFeed(url: string, source: string, category: Category): Promi
 }
 
 function fallbackArticles(category: Category): NewsArticle[] {
-  const topics: Record<Category, string[]> = {
+  const topics: Partial<Record<Category, string[]>> = {
     Politics: ["Coalition talks intensify ahead of provincial vote", "Parliament debates new energy bill", "Local government reforms unveiled"],
     Sports: ["Springboks confirm squad for end-of-year tour", "Proteas chase historic series win", "PSL title race tightens after weekend draws"],
     Technology: ["South African startup raises Series A for fintech", "Load-shedding spurs solar tech adoption", "AI research hub opens in Cape Town"],
-    Business: ["Rand strengthens against the dollar on global cues", "JSE all-share index hits new high", "SARB holds repo rate steady"],
-    Leisure: ["Top weekend restaurant openings in Joburg", "A guide to the Western Cape wine harvest", "Five hidden hiking trails near Durban"],
   };
-  return topics[category].map((title, i) => ({
+  return (topics[category] ?? []).map((title, i) => ({
     id: `fallback-${category}-${i}`,
     title,
     excerpt: `${title}. A CityNewsZA editorial brief covering the latest developments, context and what to watch next…`,
-    image: `https://picsum.photos/seed/${encodeURIComponent(category + i)}/800/500`,
+    image: undefined,
     source: "CityNewsZA",
     link: "#",
     category,
