@@ -119,5 +119,11 @@ export const fetchNews = createServerFn({ method: "GET" })
       }
     }
     articles.sort((a, b) => +new Date(b.publishedAt) - +new Date(a.publishedAt));
+    // When no specific category requested, surface SA Politics first in the headline feed
+    if (!data.category) {
+      const politics = articles.filter((a) => a.category === "Politics");
+      const rest = articles.filter((a) => a.category !== "Politics");
+      articles = [...politics.slice(0, 8), ...rest, ...politics.slice(8)];
+    }
     return articles;
   });
