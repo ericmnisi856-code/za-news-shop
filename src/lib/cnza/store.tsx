@@ -58,24 +58,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [customArticles, setCustomArticles] = useState<NewsArticle[]>([]);
   const [cart, setCart] = useLocal<CartItem[]>("cnza_cart", []);
 
-  // load custom articles from server if available and poll for changes
+  // load custom articles from server on mount only (once)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    let stopped = false;
     const fetchArticles = async () => {
       try {
         const res = await fetch("/api/custom-articles-persist");
         if (res.ok) {
           const json = (await res.json()) as NewsArticle[];
-          if (!stopped) setCustomArticles(json);
+          setCustomArticles(json);
         }
-      } catch {}
+      } catch (e) {
+        console.error("[store] Failed to load articles from server");
+      }
     };
-    // initial load
     fetchArticles();
-    // poll every 5 seconds to pick up articles published from other clients
-    const id = setInterval(fetchArticles, 5000);
-    return () => { stopped = true; clearInterval(id); };
   }, []);
 
   const addProduct = useCallback((p: Omit<Product, "id">) => {
@@ -89,41 +86,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [setProducts]);
 
   const addArticle = useCallback(async (a: { title: string; content: string; category: Category; image?: string }) => {
-    // try to persist to server; fallback to local if server not available
+    // Always publish to server and update from response (server is authoritative)
     try {
-      const res = await fetch("/api/custom-articles-persist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
+      const res = await fetch("/api/custom-articles-persist", { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify(a) 
+      });
       if (res.ok) {
-        const created = await res.json();
-        setCustomArticles((prev) => [created as NewsArticle, ...prev]);
+        const created = (await res.json()) as NewsArticle;
+        setCustomArticles((prev) => [created, ...prev]);
         return;
       }
-    } catch {}
-    const article: NewsArticle = {
-      id: `custom_${Date.now()}`,
-      title: a.title,
-      excerpt: a.content.slice(0, 240),
-      content: a.content,
-      image: a.image || `https://picsum.photos/seed/${encodeURIComponent(a.title)}/800/500`,
-      source: "CityNewsZA",
-      link: "#",
-      category: a.category,
-      author: "CityNewsZA",
-      publishedAt: new Date().toISOString(),
-      truncated: false,
-      custom: true,
-    };
-    setCustomArticles((prev) => [article, ...prev]);
+    } catch (e) {
+      console.error("[store] Failed to publish article to server");
+    }
   }, []);
 
   const deleteArticle = useCallback(async (id: string) => {
+    // Always delete from server (server is authoritative)
     try {
-      const res = await fetch("/api/custom-articles-persist", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/custom-articles-persist", { 
+        method: "DELETE", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ id }) 
+      });
       if (res.status === 204) {
         setCustomArticles((prev) => prev.filter((a) => a.id !== id));
         return;
       }
-    } catch {}
-    setCustomArticles((prev) => prev.filter((a) => a.id !== id));
+    } catch (e) {
+      console.error("[store] Failed to delete article from server");
+    }
   }, []);
 
   const addToCart = useCallback((productId: string, qty = 1) => {

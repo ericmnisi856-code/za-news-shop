@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiCustomArticlesPersistRouteImport } from './routes/api/custom-articles-persist'
 import { Route as ApiArticleRouteImport } from './routes/api/article'
 
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -30,12 +29,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCustomArticlesPersistRoute =
-  ApiCustomArticlesPersistRouteImport.update({
-    id: '/api/custom-articles-persist',
-    path: '/api/custom-articles-persist',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiArticleRoute = ApiArticleRouteImport.update({
   id: '/api/article',
   path: '/api/article',
@@ -47,14 +40,12 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/api/article': typeof ApiArticleRoute
-  '/api/custom-articles-persist': typeof ApiCustomArticlesPersistRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/api/article': typeof ApiArticleRoute
-  '/api/custom-articles-persist': typeof ApiCustomArticlesPersistRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,30 +53,13 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/admin-login': typeof AdminLoginRoute
   '/api/article': typeof ApiArticleRoute
-  '/api/custom-articles-persist': typeof ApiCustomArticlesPersistRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/admin'
-    | '/admin-login'
-    | '/api/article'
-    | '/api/custom-articles-persist'
+  fullPaths: '/' | '/admin' | '/admin-login' | '/api/article'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/admin'
-    | '/admin-login'
-    | '/api/article'
-    | '/api/custom-articles-persist'
-  id:
-    | '__root__'
-    | '/'
-    | '/admin'
-    | '/admin-login'
-    | '/api/article'
-    | '/api/custom-articles-persist'
+  to: '/' | '/admin' | '/admin-login' | '/api/article'
+  id: '__root__' | '/' | '/admin' | '/admin-login' | '/api/article'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,7 +67,6 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   AdminLoginRoute: typeof AdminLoginRoute
   ApiArticleRoute: typeof ApiArticleRoute
-  ApiCustomArticlesPersistRoute: typeof ApiCustomArticlesPersistRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -119,13 +92,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/custom-articles-persist': {
-      id: '/api/custom-articles-persist'
-      path: '/api/custom-articles-persist'
-      fullPath: '/api/custom-articles-persist'
-      preLoaderRoute: typeof ApiCustomArticlesPersistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/article': {
       id: '/api/article'
       path: '/api/article'
@@ -141,7 +107,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   AdminLoginRoute: AdminLoginRoute,
   ApiArticleRoute: ApiArticleRoute,
-  ApiCustomArticlesPersistRoute: ApiCustomArticlesPersistRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
