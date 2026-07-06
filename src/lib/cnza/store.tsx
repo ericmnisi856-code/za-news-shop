@@ -58,18 +58,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [customArticles, setCustomArticles] = useState<NewsArticle[]>([]);
   const [cart, setCart] = useLocal<CartItem[]>("cnza_cart", []);
 
-  // load custom articles from server if available
+  // load custom articles from server if available and poll for changes
   useEffect(() => {
     if (typeof window === "undefined") return;
-    (async () => {
+    let stopped = false;
+    const fetchArticles = async () => {
       try {
         const res = await fetch("/api/custom-articles-persist");
         if (res.ok) {
-          const json = await res.json();
-          setCustomArticles(json as NewsArticle[]);
+          const json = (await res.json()) as NewsArticle[];
+          if (!stopped) setCustomArticles(json);
         }
       } catch {}
-    })();
+    };
+    // initial load
+    fetchArticles();
+    // poll every 5 seconds to pick up articles published from other clients
+    const id = setInterval(fetchArticles, 5000);
+    return () => { stopped = true; clearInterval(id); };
   }, []);
 
   const addProduct = useCallback((p: Omit<Product, "id">) => {
