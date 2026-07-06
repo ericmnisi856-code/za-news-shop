@@ -15,8 +15,8 @@ type Ctx = {
   addProduct: (p: Omit<Product, "id">) => void;
   updateProduct: (id: string, p: Partial<Product>) => void;
   deleteProduct: (id: string) => void;
-  addArticle: (a: { title: string; content: string; category: Category; image?: string }) => void;
-  deleteArticle: (id: string) => void;
+  addArticle: (a: { title: string; content: string; category: Category; image?: string }) => Promise<void> | void;
+  deleteArticle: (id: string) => Promise<void> | void;
   addToCart: (productId: string, qty?: number) => void;
   updateQty: (productId: string, qty: number) => void;
   removeFromCart: (productId: string) => void;
@@ -38,7 +38,7 @@ function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => voi
   useEffect(() => {
     try { localStorage.setItem(key, JSON.stringify(v)); } catch {}
     // notify other tabs / same tab listeners
-    window.dispatchEvent(new CustomEvent(`cnza:${key}`));
+    try { window.dispatchEvent(new CustomEvent(`cnza:${key}`)); } catch {}
   }, [key, v]);
   useEffect(() => {
     const handler = () => {
@@ -47,16 +47,30 @@ function useLocal<T>(key: string, initial: T): [T, (v: T | ((p: T) => T)) => voi
         if (raw) setV(JSON.parse(raw) as T);
       } catch {}
     };
-    window.addEventListener(`cnza:${key}`, handler);
-    return () => window.removeEventListener(`cnza:${key}`, handler);
+    try { window.addEventListener(`cnza:${key}`, handler); } catch {}
+    return () => { try { window.removeEventListener(`cnza:${key}`, handler); } catch {} };
   }, [key]);
   return [v, setV];
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useLocal<Product[]>("cnza_products", SEED_PRODUCTS);
-  const [customArticles, setCustomArticles] = useLocal<NewsArticle[]>("cnza_custom_articles", []);
+  const [customArticles, setCustomArticles] = useState<NewsArticle[]>([]);
   const [cart, setCart] = useLocal<CartItem[]>("cnza_cart", []);
+
+  // load custom articles from server if available
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    (async () => {
+      try {
+        const res = await fetch("/api/custom-articles");
+        if (res.ok) {
+          const json = await res.json();
+          setCustomArticles(json as NewsArticle[]);
+        }
+      } catch {}
+    })();
+  }, []);
 
   const addProduct = useCallback((p: Omit<Product, "id">) => {
     setProducts((prev) => [...prev, { ...p, id: `p_${Date.now()}` }]);
@@ -68,7 +82,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   }, [setProducts]);
 
-  const addArticle = useCallback((a: { title: string; content: string; category: Category; image?: string }) => {
+  const addArticle = useCallback(async (a: { title: string; content: string; category: Category; image?: string }) => {
+    // try to persist to server; fallback to local if server not available
+    try {
+      const res = await fetch("/api/custom-articles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
+      if (res.ok) {
+        const created = await res.json();
+        setCustomArticles((prev) => [created as NewsArticle, ...prev]);
+        return;
+      }
+    } catch {}
     const article: NewsArticle = {
       id: `custom_${Date.now()}`,
       title: a.title,
@@ -84,10 +107,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       custom: true,
     };
     setCustomArticles((prev) => [article, ...prev]);
-  }, [setCustomArticles]);
-  const deleteArticle = useCallback((id: string) => {
+  }, []);
+
+  const deleteArticle = useCallback(async (id: string) => {
+    try {
+      const res = await fetch("/api/custom-articles", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      if (res.status === 204) {
+        setCustomArticles((prev) => prev.filter((a) => a.id !== id));
+        return;
+      }
+    } catch {}
     setCustomArticles((prev) => prev.filter((a) => a.id !== id));
-  }, [setCustomArticles]);
+  }, []);
 
   const addToCart = useCallback((productId: string, qty = 1) => {
     setCart((prev) => {
