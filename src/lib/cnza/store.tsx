@@ -63,7 +63,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (typeof window === "undefined") return;
     (async () => {
       try {
-        const res = await fetch("/api/custom-articles");
+        const res = await fetch("/api/custom-articles-persist");
         if (res.ok) {
           const json = await res.json();
           setCustomArticles(json as NewsArticle[]);
@@ -85,7 +85,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const addArticle = useCallback(async (a: { title: string; content: string; category: Category; image?: string }) => {
     // try to persist to server; fallback to local if server not available
     try {
-      const res = await fetch("/api/custom-articles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
+      const res = await fetch("/api/custom-articles-persist", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(a) });
       if (res.ok) {
         const created = await res.json();
         setCustomArticles((prev) => [created as NewsArticle, ...prev]);
@@ -111,7 +111,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const deleteArticle = useCallback(async (id: string) => {
     try {
-      const res = await fetch("/api/custom-articles", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+      const res = await fetch("/api/custom-articles-persist", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
       if (res.status === 204) {
         setCustomArticles((prev) => prev.filter((a) => a.id !== id));
         return;
