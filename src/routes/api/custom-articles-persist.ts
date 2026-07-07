@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 const Body = z.object({
@@ -23,50 +23,74 @@ type Article = {
   custom: boolean;
 };
 
-let ARTICLES: Article[] = [];
-let DB_READY = false;
+const STORE_NAME = "cnza-articles";
+const KEY = "articles.json";
 
-async function ensureDb() {
-  if (DB_READY) return;
+// In-memory fallback for local dev when Netlify Blobs is unavailable.
+let MEM: Article[] = [];
+
+async function getStore() {
   try {
-    const sqlite3 = await import("better-sqlite3");
-    const Database = sqlite3.default;
-    const dbPath = new URL("../../../articles.db", import.meta.url).pathname;
-    const db = new Database(dbPath);
-    db.exec(CREATE TABLE IF NOT EXISTS articles (id TEXT PRIMARY KEY, data TEXT NOT NULL));
-    const rows = db.prepare("SELECT data FROM articles ORDER BY json_extract(data, '$.publishedAt') DESC").all() as any[];
-    ARTICLES = rows.map(r => JSON.parse(r.data) as Article);
-    (globalThis as any).__articlesDb = db;
-    DB_READY = true;
-    console.log("[articles] SQLite ready, loaded", ARTICLES.length, "articles");
-  } catch (e) {
-    console.warn("[articles] SQLite not available, using in-memory only");
-    DB_READY = true;
+    const mod = await import("@netlify/blobs");
+    return mod.getStore({ name: STORE_NAME, consistency: "strong" });
+  } catch {
+    return null;
   }
 }
 
-ensureDb().catch(() => { DB_READY = true; });
+async function loadAll(): Promise<Article[]> {
+  const store = await getStore();
+  if (!store) return MEM;
+  try {
+    const data = await store.get(KEY, { type: "json" });
+    return (data as Article[] | null) ?? [];
+  } catch {
+    return MEM;
+  }
+}
+
+async function saveAll(articles: Article[]): Promise<void> {
+  MEM = articles;
+  const store = await getStore();
+  if (!store) return;
+  try {
+    await store.setJSON(KEY, articles);
+  } catch (e) {
+    console.error("[articles] Blob save error:", e);
+  }
+}
+
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
 
 export const Route = createFileRoute("/api/custom-articles-persist")({
   server: {
     handlers: {
+      OPTIONS: async () => new Response(null, { status: 204, headers: CORS }),
       GET: async () => {
-        return Response.json(ARTICLES);
+        const articles = await loadAll();
+        return new Response(JSON.stringify(articles), {
+          status: 200,
+          headers: { "Content-Type": "application/json", "Cache-Control": "no-store", ...CORS },
+        });
       },
       POST: async ({ request }) => {
         let parsed;
         try {
           parsed = Body.parse(await request.json());
         } catch {
-          return new Response("Invalid input", { status: 400 });
+          return new Response("Invalid input", { status: 400, headers: CORS });
         }
         const { title, content, category, image } = parsed;
         const article: Article = {
-          id: custom_Start-Sleep -Seconds 1; Get-ChildItem src/routes/api/{Date.now()},
+          id: `custom_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
           title,
           excerpt: content.slice(0, 240),
           content,
-          image: image || https://picsum.photos/seed/Start-Sleep -Seconds 1; Get-ChildItem src/routes/api/{encodeURIComponent(title)}/800/500,
+          image: image || `https://picsum.photos/seed/${encodeURIComponent(title)}/800/500`,
           source: "CityNewsZA",
           link: "#",
           category,
@@ -75,41 +99,28 @@ export const Route = createFileRoute("/api/custom-articles-persist")({
           truncated: false,
           custom: true,
         };
-        ARTICLES = [article, ...ARTICLES];
-        try {
-          const db = (globalThis as any).__articlesDb;
-          if (db) {
-            db.prepare("INSERT OR REPLACE INTO articles (id, data) VALUES (?, ?)").run(
-              article.id,
-              JSON.stringify(article)
-            );
-            console.log("[articles] Saved", article.id);
-          }
-        } catch (e) {
-          console.error("[articles] Save error:", e);
-        }
-        return Response.json(article, { status: 201 });
+        const current = await loadAll();
+        const next = [article, ...current];
+        await saveAll(next);
+        return new Response(JSON.stringify(article), {
+          status: 201,
+          headers: { "Content-Type": "application/json", ...CORS },
+        });
       },
       DELETE: async ({ request }) => {
         try {
           const body = await request.json();
           const id = body?.id;
-          if (!id) return new Response("Missing id", { status: 400 });
-          const prevLen = ARTICLES.length;
-          ARTICLES = ARTICLES.filter(a => a.id !== id);
-          if (ARTICLES.length === prevLen) return new Response("Not found", { status: 404 });
-          try {
-            const db = (globalThis as any).__articlesDb;
-            if (db) {
-              db.prepare("DELETE FROM articles WHERE id = ?").run(id);
-              console.log("[articles] Deleted", id);
-            }
-          } catch (e) {
-            console.error("[articles] Delete error:", e);
+          if (!id) return new Response("Missing id", { status: 400, headers: CORS });
+          const current = await loadAll();
+          const next = current.filter((a) => a.id !== id);
+          if (next.length === current.length) {
+            return new Response("Not found", { status: 404, headers: CORS });
           }
-          return new Response(null, { status: 204 });
-        } catch (e) {
-          return new Response("Error", { status: 400 });
+          await saveAll(next);
+          return new Response(null, { status: 204, headers: CORS });
+        } catch {
+          return new Response("Error", { status: 400, headers: CORS });
         }
       },
     },
