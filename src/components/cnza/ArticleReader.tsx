@@ -147,15 +147,14 @@ export function ArticleReader({ article, onClose }: Props) {
 
 function ShareBar({ article, body }: { article: NewsArticle; body: string }) {
   const slug = slugify(article.title);
-  const excerpt = (article.excerpt || body || "").replace(/\s+/g, " ").slice(0, 220);
+  const excerpt = (article.excerpt || body || "").replace(/\s+/g, " ").slice(0, 140);
   const params = new URLSearchParams({
-    t: article.title,
+    t: article.title.slice(0, 120),
     d: excerpt,
     src: article.source,
     cat: article.category,
   });
-  if (article.image) params.set("img", article.image);
-  if (article.link && article.link !== "#") params.set("url", article.link);
+  if (article.image && article.image.length < 300) params.set("img", article.image);
   const url = `${SITE_URL}/article/${slug}?${params.toString()}`;
   const title = article.title;
   const encodedUrl = encodeURIComponent(url);
