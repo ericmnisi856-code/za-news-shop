@@ -22,10 +22,13 @@ function absoluteImage(img: string | undefined) {
 
 export const Route = createFileRoute("/article/$slug")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: ({ params, search }) => {
-    const title = search.t?.slice(0, 140) ?? "City News ZA article";
-    const description = (search.d ?? "Read the full story on City News ZA — South African news, politics, sports, tech and more.").slice(0, 280);
-    const image = absoluteImage(search.img);
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) => deps,
+  head: ({ params, loaderData }) => {
+    const s = loaderData ?? {};
+    const title = s.t?.slice(0, 140) ?? "City News ZA article";
+    const description = (s.d ?? "Read the full story on City News ZA — South African news, politics, sports, tech and more.").slice(0, 280);
+    const image = absoluteImage(s.img);
     const canonical = `${SITE_URL}/article/${params.slug}`;
     return {
       meta: [
