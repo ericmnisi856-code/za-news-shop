@@ -136,7 +136,7 @@ export function ArticleReader({ article, onClose }: Props) {
                 )}
               </div>
 
-              <ShareBar title={article.title} slug={slugify(article.title)} id={article.id} />
+              <ShareBar article={article} body={body} />
             </div>
           </article>
         )}
@@ -145,8 +145,19 @@ export function ArticleReader({ article, onClose }: Props) {
   );
 }
 
-function ShareBar({ title, slug, id }: { title: string; slug: string; id: string }) {
-  const url = `${SITE_URL}/article/${slug}-${id}`;
+function ShareBar({ article, body }: { article: NewsArticle; body: string }) {
+  const slug = slugify(article.title);
+  const excerpt = (article.excerpt || body || "").replace(/\s+/g, " ").slice(0, 220);
+  const params = new URLSearchParams({
+    t: article.title,
+    d: excerpt,
+    src: article.source,
+    cat: article.category,
+  });
+  if (article.image) params.set("img", article.image);
+  if (article.link && article.link !== "#") params.set("url", article.link);
+  const url = `${SITE_URL}/article/${slug}?${params.toString()}`;
+  const title = article.title;
   const encodedUrl = encodeURIComponent(url);
   const encodedTitle = encodeURIComponent(title);
   const [copied, setCopied] = useState(false);
