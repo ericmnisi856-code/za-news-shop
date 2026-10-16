@@ -1,0 +1,18 @@
+# Netlify deployment configuration for this TanStack Start app.
+#
+# When NETLIFY=1 is set during the build (Netlify CI sets this automatically),
+# vite.config.ts switches the nitro deploy preset to "netlify", which produces
+# a Netlify Functions bundle in `.netlify/` plus static assets in `dist`.
+#
+# Nitro's netlify preset emits its own _redirects / function routing into the
+# build output, so do NOT add a manual SPA `/*  /index.html  200` fallback —
+# it would shadow the SSR function and break server-rendered pages and API
+# routes.
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NETLIFY = "1"
